@@ -1,4 +1,5 @@
 import time
+
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from typing import Any, Dict
@@ -18,11 +19,28 @@ from reply_handler import handle_reply
 # ============================================================
 # APP
 # ============================================================
+
 START_TIME = time.time()
+
 app = FastAPI(
     title="Vera Merchant AI Assistant",
     version="1.0.0"
 )
+
+
+# ============================================================
+# ROOT
+# ============================================================
+
+@app.get("/")
+async def root():
+    return {
+        "status": "ok",
+        "name": "Vera Merchant AI Assistant",
+        "message": "Vera API is running",
+        "docs": "/docs",
+        "health": "/v1/healthz"
+    }
 
 
 # ============================================================
@@ -41,7 +59,6 @@ async def healthz():
             "trigger": len(get_store_for_scope("trigger") or {})
         }
     }
-    
 
 
 # ============================================================
@@ -51,14 +68,14 @@ async def healthz():
 @app.get("/v1/metadata")
 async def metadata():
     return {
-        "team_name": "YOUR TEAM NAME",
-        "team_members": ["YOUR NAME"],
+        "team_name": "Vera AI",
+        "team_members": ["Mehak"],
         "model": "deterministic-rule-based",
         "approach": (
             "Deterministic context-aware composer using "
             "category, merchant, customer and trigger context"
         ),
-        "contact_email": "YOUR EMAIL",
+        "contact_email": "mehak.917542@gmail.com",
         "version": "1.0.0",
         "submitted_at": "2026-07-29T18:30:00Z"
     }
@@ -169,7 +186,7 @@ async def tick(body: TickBody):
         # merchant_id is at the top level.
         merchant_id = trigger.get("merchant_id")
 
-        # Backward compatibility with our local test trigger:
+        # Backward compatibility with local test triggers:
         # merchant_id may be inside payload.
         if not merchant_id:
             merchant_id = trigger.get(
