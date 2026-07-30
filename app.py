@@ -1,24 +1,5 @@
 import time
-
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-from typing import Any, Dict
-
-from store import (
-    get_store_for_scope,
-    get_trigger,
-    get_merchant,
-    get_category,
-    sent_suppression_keys,
-)
-
-from composer import compose_message
-from reply_handler import handle_reply
-
-
-# ============================================================
-# APP
-# ============================================================
+from fastapi import FastAPI
 
 START_TIME = time.time()
 
@@ -28,42 +9,25 @@ app = FastAPI(
 )
 
 
-# ============================================================
-# ROOT
-# ============================================================
-
 @app.get("/")
 async def root():
     return {
         "status": "ok",
-        "name": "Vera Merchant AI Assistant",
+        "service": "Vera Merchant AI Assistant",
         "message": "Vera API is running",
-        "docs": "/docs",
-        "health": "/v1/healthz"
+        "health": "/v1/healthz",
+        "metadata": "/v1/metadata",
+        "docs": "/docs"
     }
 
-
-# ============================================================
-# HEALTH
-# ============================================================
 
 @app.get("/v1/healthz")
 async def healthz():
     return {
         "status": "ok",
-        "uptime_seconds": int(time.time() - START_TIME),
-        "contexts_loaded": {
-            "category": len(get_store_for_scope("category") or {}),
-            "merchant": len(get_store_for_scope("merchant") or {}),
-            "customer": len(get_store_for_scope("customer") or {}),
-            "trigger": len(get_store_for_scope("trigger") or {})
-        }
+        "uptime_seconds": int(time.time() - START_TIME)
     }
 
-
-# ============================================================
-# METADATA
-# ============================================================
 
 @app.get("/v1/metadata")
 async def metadata():
@@ -71,15 +35,11 @@ async def metadata():
         "team_name": "Vera AI",
         "team_members": ["Mehak"],
         "model": "deterministic-rule-based",
-        "approach": (
-            "Deterministic context-aware composer using "
-            "category, merchant, customer and trigger context"
-        ),
+        "approach": "Deterministic context-aware merchant assistant",
         "contact_email": "mehak.917542@gmail.com",
         "version": "1.0.0",
         "submitted_at": "2026-07-29T18:30:00Z"
     }
-
 
 # ============================================================
 # CONTEXT
