@@ -1,5 +1,24 @@
 import time
-from fastapi import FastAPI
+
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+from typing import Any, Dict
+
+from store import (
+    get_store_for_scope,
+    get_trigger,
+    get_merchant,
+    get_category,
+    sent_suppression_keys,
+)
+
+from composer import compose_message
+from reply_handler import handle_reply
+
+
+# ============================================================
+# APP
+# ============================================================
 
 START_TIME = time.time()
 
@@ -8,6 +27,10 @@ app = FastAPI(
     version="1.0.0"
 )
 
+
+# ============================================================
+# ROOT
+# ============================================================
 
 @app.get("/")
 async def root():
@@ -21,6 +44,10 @@ async def root():
     }
 
 
+# ============================================================
+# HEALTH
+# ============================================================
+
 @app.get("/v1/healthz")
 async def healthz():
     return {
@@ -28,6 +55,10 @@ async def healthz():
         "uptime_seconds": int(time.time() - START_TIME)
     }
 
+
+# ============================================================
+# METADATA
+# ============================================================
 
 @app.get("/v1/metadata")
 async def metadata():
@@ -40,6 +71,7 @@ async def metadata():
         "version": "1.0.0",
         "submitted_at": "2026-07-29T18:30:00Z"
     }
+
 
 # ============================================================
 # CONTEXT
@@ -55,6 +87,7 @@ class ContextBody(BaseModel):
 
 @app.post("/v1/context")
 async def push_context(body: ContextBody):
+
     context_store = get_store_for_scope(body.scope)
 
     # Reject unknown scopes
@@ -109,6 +142,7 @@ class TickBody(BaseModel):
 
 @app.post("/v1/tick")
 async def tick(body: TickBody):
+
     actions = []
 
     for trigger_id in body.available_triggers:
@@ -244,6 +278,7 @@ class ReplyBody(BaseModel):
 
 @app.post("/v1/reply")
 async def reply(body: ReplyBody):
+
     result = handle_reply(body.message)
 
     response = {
